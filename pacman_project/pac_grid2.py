@@ -43,9 +43,10 @@ score = 0
 # ghost variables
 ghost_x1 = 660
 ghost_y1 = 220
-ghost_x2 = 620
+ghost_x2 = 780
 ghost_y2 = 420
-# ghost_x3 =
+ghost_x3 = 540
+ghost_y3 = 420
 ghost_speeds = [[0, 0], [0, 0], [0, 0]]
 
 
@@ -58,9 +59,13 @@ def on_update(delta_time):
     # control ghost 1 motion; super ghost can move through walls
     ghost_chase1(ghost_x1, ghost_y1, pac_x, pac_y)
 
-    # random ghost 2 motion; unable to go trhough walls
+    # random ghost 2 motion; unable to go through walls
     wall_touch_ghost2 = wall_collision(ghost_x2, ghost_y2)
-    ghost_chase_rand(wall_touch_ghost2)
+    ghost_chase_rand2(wall_touch_ghost2)
+
+    # randome ghost 3 motion; unable to go through walls, slight attraction to pacman
+    wall_touch_ghost3 = wall_collision(ghost_x3, ghost_y3)
+    ghost_chase_rand3(wall_touch_ghost3)
 
     # open and close pac mans mouth
     time += delta_time
@@ -71,7 +76,7 @@ def on_update(delta_time):
 
 def on_draw():
     global pac_grid, row_count, column_count, tile_width, tile_height, pac_x ,pac_y, score
-    global ghost_x1, ghost_y1, ghost_x1, ghost_y1
+    global ghost_x1, ghost_y1, ghost_x1, ghost_y1, ghost_x3, ghost_y3
 
     arcade.start_render()
     draw_maze()
@@ -82,6 +87,7 @@ def on_draw():
     # draw ghosts
     draw_ghost(ghost_x1, ghost_y1)
     draw_ghost(ghost_x2, ghost_y2)
+    draw_ghost(ghost_x3, ghost_y3)
 
     # draw the score
     write_score(score)
@@ -175,7 +181,7 @@ def wall_collision(x, y):
     else:
         return "null"
 
-def ghost_chase_rand(walls):
+def ghost_chase_rand2(walls):
     """ Move ghost 2 randomly prohibiting movement through walls
 
     :param ghostx: the x positon of a ghost
@@ -204,13 +210,12 @@ def ghost_chase_rand(walls):
             elif wall == "right":
                 ghost2_poss_speeds[3] = 0
                 ghost_speeds[1][0] = 0
-        print(ghost2_poss_speeds, ghost_speeds[1])
+
         # check if ghost in currently in motion
         if ghost_speeds[1][0] == 0 and ghost_speeds[1][1] == 0:
             rand_move = random.randint(0,3)
             while ghost2_poss_speeds[rand_move] == 0:
                 rand_move = random.randint(0, 3)
-            print(rand_move)
             if rand_move == 0:
                 ghost_speeds[1][1] = ghost2_poss_speeds[0]
             elif rand_move == 1:
@@ -219,8 +224,6 @@ def ghost_chase_rand(walls):
                 ghost_speeds[1][0] = ghost2_poss_speeds[2]
             elif rand_move == 3:
                 ghost_speeds[1][0] = ghost2_poss_speeds[3]
-            print(ghost_speeds)
-
         else:
             if ghost_speeds[1][0] > 0 and ghost2_poss_speeds[3] != 0:
                 ghost_speeds[1][0] = ghost2_poss_speeds[3]
@@ -232,8 +235,97 @@ def ghost_chase_rand(walls):
                 ghost_speeds[1][1] = ghost2_poss_speeds[1]
 
     # move the ghost
+    # print(ghost2_poss_speeds)
     ghost_x2 += ghost_speeds[1][0]
     ghost_y2 += ghost_speeds[1][1]
+
+
+def ghost_chase_rand3(walls):
+    """ Move ghost 3 with slight attraction to pacman without going through walls
+
+    :param walls: Walls ghost 3 is currently in contact with
+    :return: none
+    """
+    global ghost_speeds, ghost_x3, ghost_y3, pac_x, pac_y
+
+    # create an empty list of ghost 2 possible speeds
+    ghost3_poss_speeds = [8, -8, -8, 8]
+
+    # check if ghost is midtile
+    if walls != "null":
+        # set possible speeds in wall touch direction to zero
+        for wall in walls:
+            if wall == "up":
+                ghost3_poss_speeds[0] = 0
+                ghost_speeds[2][1] = 0
+            elif wall == "down":
+                ghost3_poss_speeds[1] = 0
+                ghost_speeds[2][1] = 0
+
+            if wall == "left":
+                ghost3_poss_speeds[2] = 0
+                ghost_speeds[2][0] = 0
+            elif wall == "right":
+                ghost3_poss_speeds[3] = 0
+                ghost_speeds[2][0] = 0
+        # calculate the x and y differences between pac and ghost
+        x_distance = ghost_x3 - pac_x
+        y_distance = ghost_y3 - pac_y
+
+        # print(x_distance, y_distance)
+        # check if ghost in currently in motion or not
+        # if ghost_speeds[2][0] == 0 and ghost_speeds[2][1] == 0:
+            # check if pacman is closer in x direction and try to send ghost that way
+        if abs(x_distance) >= abs(y_distance):
+            # ghost is on the right of pacman; go left
+            if x_distance > 0 and ghost3_poss_speeds[2] != 0:
+                ghost_speeds[2][0] = ghost3_poss_speeds[2]
+                ghost_speeds[2][1] = 0
+            # ghost is on the left of pacman; go right
+            elif x_distance <= 0 and ghost3_poss_speeds[3] != 0:
+                ghost_speeds[2][0] = ghost3_poss_speeds[3]
+                ghost_speeds[2][1] = 0
+            # ghost is cutoff left and right, go up or down(random)
+            else:
+                rand_y_move = random.randint(0, 1)
+                while ghost3_poss_speeds[rand_y_move] == 0:
+                    rand_y_move = random.randint(0, 1)
+                # move ghost up
+                if rand_y_move == 0:
+                    ghost_speeds[2][1] = ghost3_poss_speeds[0]
+                # move ghost down
+                else:
+                    ghost_speeds[2][1] = ghost3_poss_speeds[1]
+
+        # ghost is closer in the y direction
+        else:
+            # ghost is on the ontop of pacman; go down
+            if y_distance > 0 and ghost3_poss_speeds[1] != 0:
+                ghost_speeds[2][1] = ghost3_poss_speeds[1]
+                ghost_speeds[2][0] = 0
+            # ghost is on the bottom of pacman; go up
+            elif y_distance <= 0 and ghost3_poss_speeds[0] != 0:
+                ghost_speeds[2][1] = ghost3_poss_speeds[0]
+                ghost_speeds[2][0] = 0
+            # ghost is cutoff top and bottom, go left or right(random)
+            else:
+                rand_x_move = random.randint(2, 3)
+                while ghost3_poss_speeds[rand_x_move] == 0:
+                    rand_x_move = random.randint(2, 3)
+                # move ghost up
+                if rand_x_move == 2:
+                    ghost_speeds[2][0] = ghost3_poss_speeds[2]
+                # move ghost down
+                else:
+                    ghost_speeds[2][0] = ghost3_poss_speeds[3]
+        # ghost is currently in motion
+        # else:
+
+    # move the ghost
+    print(ghost_speeds[2])
+    ghost_x3 += ghost_speeds[2][0]
+    ghost_y3 += ghost_speeds[2][1]
+
 
 def ghost_chase1(ghostx, ghosty, pacx, pacy):
     """ attract the super ghost (ghost 1) ghost to pacman by calculating motion and slope
@@ -513,9 +605,7 @@ def setup():
             elif  (1 <= column <= 29) and (1 <= row <= 13):
                 pac_grid[row].append(1)
 
-
     arcade.run()
-
 
 if __name__ == '__main__':
     setup()
