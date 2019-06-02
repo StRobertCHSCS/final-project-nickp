@@ -253,28 +253,47 @@ def ghost_chase_rand3(walls):
     :param walls: Walls ghost 3 is currently in contact with
     :return: none
     """
-    global ghost_speeds, ghost_x3, ghost_y3, pac_x, pac_y
+    global ghost_speeds, ghost_x3, ghost_y3, pac_x, pac_y, tile_width
+
+    delta_column = ((ghost_x3 - tile_width//2) // tile_width) - ((pac_x - tile_width//2) // tile_width)
+    delta_row = ((ghost_y3 - tile_width//2) // tile_width) - ((pac_y - tile_width//2) // tile_width)
 
     # create an empty list of ghost 2 possible speeds
     ghost3_poss_speeds = [10, -10, -10, 10]
 
-    # check if ghost is midtile
-    if walls != "null":
-        # set possible speeds in wall touch direction to zero
-        for wall in walls:
-            if wall == "up":
-                ghost3_poss_speeds[0] = 0
-                ghost_speeds[2][1] = 0
-            elif wall == "down":
-                ghost3_poss_speeds[1] = 0
-                ghost_speeds[2][1] = 0
+    # set possible speeds in wall touch direction to zero
+    for wall in walls:
+        if wall == "up":
+            ghost3_poss_speeds[0] = 0
+            ghost_speeds[2][1] = 0
+        elif wall == "down":
+            ghost3_poss_speeds[1] = 0
+            ghost_speeds[2][1] = 0
 
-            if wall == "left":
-                ghost3_poss_speeds[2] = 0
-                ghost_speeds[2][0] = 0
-            elif wall == "right":
-                ghost3_poss_speeds[3] = 0
-                ghost_speeds[2][0] = 0
+        if wall == "left":
+            ghost3_poss_speeds[2] = 0
+            ghost_speeds[2][0] = 0
+        elif wall == "right":
+            ghost3_poss_speeds[3] = 0
+            ghost_speeds[2][0] = 0
+
+    # check if ghost is midtile and not equidistnt from pacman
+    if walls != "null" or (delta_column != delta_row):
+        # set possible speeds in wall touch direction to zero
+        # for wall in walls:
+        #     if wall == "up":
+        #         ghost3_poss_speeds[0] = 0
+        #         ghost_speeds[2][1] = 0
+        #     elif wall == "down":
+        #         ghost3_poss_speeds[1] = 0
+        #         ghost_speeds[2][1] = 0
+        #
+        #     if wall == "left":
+        #         ghost3_poss_speeds[2] = 0
+        #         ghost_speeds[2][0] = 0
+        #     elif wall == "right":
+        #         ghost3_poss_speeds[3] = 0
+        #         ghost_speeds[2][0] = 0
         # calculate the x and y differences between pac and ghost
         x_distance = ghost_x3 - pac_x
         y_distance = ghost_y3 - pac_y
@@ -301,8 +320,9 @@ def ghost_chase_rand3(walls):
                     if rand_y_move == 0:
                         ghost_speeds[2][1] = ghost3_poss_speeds[0]
                     # move ghost down
-                    else:
+                    elif rand_y_move == 1:
                         ghost_speeds[2][1] = ghost3_poss_speeds[1]
+
 
             # ghost is closer in the y direction
             else:
@@ -329,11 +349,11 @@ def ghost_chase_rand3(walls):
         else:
             if abs(x_distance) >= abs(y_distance):
                 # try to move left or right constantly
-                if x_distance > 0 and ghost3_poss_speeds[2] != 0:
+                if (x_distance > 0 and ghost3_poss_speeds[2] != 0) or ghost_speeds[2][0] < 0:
                     ghost_speeds[2][0] = ghost3_poss_speeds[2]
                     ghost_speeds[2][1] = 0
 
-                elif x_distance <= 0 and ghost3_poss_speeds[3] != 0:
+                elif (x_distance <= 0 and ghost3_poss_speeds[3] != 0) or ghost_speeds[2][0] > 0:
                     ghost_speeds[2][0] = ghost3_poss_speeds[3]
                     ghost_speeds[2][1] = 0
 
@@ -350,10 +370,10 @@ def ghost_chase_rand3(walls):
 
             else:
                 # try to move up or down constantly
-                if ghost3_poss_speeds[0] != 0 and y_distance <= 0:
+                if (ghost3_poss_speeds[0] != 0 and y_distance <= 0) or ghost_speeds[2][1] > 0:
                     ghost_speeds[2][1] = ghost3_poss_speeds[0]
                     ghost_speeds[2][0] = 0
-                elif ghost3_poss_speeds[1] != 0 and y_distance > 0:
+                elif (ghost3_poss_speeds[1] != 0 and y_distance > 0) or ghost_speeds[2][1] < 0:
                     ghost_speeds[2][1] = ghost3_poss_speeds[1]
                     ghost_speeds[2][0] = 0
                     # ghost is cutoff top and bottom, go left or right(random)
@@ -368,6 +388,29 @@ def ghost_chase_rand3(walls):
                     else:
                         ghost_speeds[2][0] = ghost3_poss_speeds[3]
 
+    elif delta_column == delta_row:
+        # check if ghost in currently in motion
+        if ghost_speeds[2][0] == 0 and ghost_speeds[2][1] == 0:
+            rand_move = random.randint(0, 3)
+            while ghost3_poss_speeds[rand_move] == 0:
+                rand_move = random.randint(0, 3)
+            if rand_move == 0:
+                ghost_speeds[2][1] = ghost3_poss_speeds[0]
+            elif rand_move == 1:
+                ghost_speeds[2][1] = ghost3_poss_speeds[1]
+            elif rand_move == 2:
+                ghost_speeds[2][0] = ghost3_poss_speeds[2]
+            elif rand_move == 3:
+                ghost_speeds[2][0] = ghost3_poss_speeds[3]
+        else:
+            if ghost_speeds[2][0] > 0 and ghost3_poss_speeds[3] != 0:
+                ghost_speeds[2][0] = ghost3_poss_speeds[3]
+            elif ghost_speeds[2][0] < 0 and ghost3_poss_speeds[2] != 0:
+                ghost_speeds[2][0] = ghost3_poss_speeds[2]
+            elif ghost_speeds[2][1] > 0 and ghost3_poss_speeds[0] != 0:
+                ghost_speeds[2][1] = ghost3_poss_speeds[0]
+            elif ghost_speeds[2][1] < 0 and ghost3_poss_speeds[1] != 0:
+                ghost_speeds[2][1] = ghost3_poss_speeds[1]
 
     # move the ghost
     # print(ghost_speeds[2])
