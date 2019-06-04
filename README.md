@@ -8,7 +8,7 @@
 
 ### Gameplay Instructions
 * Collect as many pellets as possible
-* Run away from ghosts, aviod bombs
+* Run away from ghosts
 * Click on mouse to disactivate ghosts
 * Grab super pellet to chase ghosts
 

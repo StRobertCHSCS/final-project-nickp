@@ -101,9 +101,8 @@ def on_draw():
         arcade.draw_text("YOU LOSE", WIDTH//2 - (7*tile_width), HEIGHT//2 - (2*tile_width), arcade.color.RED_DEVIL, 100)
 
 def draw_ghost(x, y):
-    global tile_width, tile_height
-    texture = arcade.load_texture("Pac-Man-Ghost-PNG-Image.png")
-    arcade.draw_texture_rectangle(x, y, tile_width, tile_height, texture, 0)
+    global tile_width, tile_height, texture_ghost
+    arcade.draw_texture_rectangle(x, y, tile_width, tile_height, texture_ghost, 0)
 
 
 def draw_maze():
@@ -599,10 +598,9 @@ def pac_object_detection(x, y):
         final_arc_angle = 360
 
 def draw_wall_tile(x, y):
-    global tile_height, tile_width, texture
-    texture = arcade.load_texture("pacific-blue-high-sheen-merola-tile-mosaic-tile-fyfl1spa-64_1000.jpg")
+    global tile_height, tile_width, texture_tile
     # display fire image on screen
-    arcade.draw_texture_rectangle(x, y, tile_width, tile_height, texture, 0)
+    arcade.draw_texture_rectangle(x, y, tile_width, tile_height, texture_tile, 0)
 
 
 def draw_pacman_closed(x, y):
@@ -616,10 +614,9 @@ def draw_pacman_open(x, y):
 
 
 def draw_pellet(x, y):
-    global pellet_rad
-    texture = arcade.load_texture("Gold_Coin_PNG_Clipart-663.png")
+    global pellet_rad, texture_pellet
     # arcade.draw_circle_filled(x, y, pellet_rad, arcade.color.ORANGE_PEEL)
-    arcade.draw_texture_rectangle(x, y, pellet_rad, pellet_rad, texture, 0)
+    arcade.draw_texture_rectangle(x, y, pellet_rad, pellet_rad, texture_pellet, 0)
 
 
 def on_key_press(key, modifiers):
@@ -661,7 +658,7 @@ def on_mouse_press(x, y, button, modifiers):
 
 
 def setup():
-    global pac_grid, row_count, column_count, texture
+    global pac_grid, row_count, column_count, texture_tile, texture_pellet, texture_ghost
     global pac_grid, row_count, column_count, tile_width, tile_height, pac_x,pac_y, score
     arcade.open_window(WIDTH, HEIGHT, "My Arcade Game")
     arcade.set_background_color(arcade.color.BLACK)
@@ -673,6 +670,11 @@ def setup():
     window.on_key_press = on_key_press
     window.on_key_release = on_key_release
     window.on_mouse_press = on_mouse_press
+
+    # load images in setup
+    texture_tile = arcade.load_texture("pacific-blue-high-sheen-merola-tile-mosaic-tile-fyfl1spa-64_1000.jpg")
+    texture_pellet = arcade.load_texture("Gold_Coin_PNG_Clipart-663.png")
+    texture_ghost = arcade.load_texture("Pac-Man-Ghost-PNG-Image.png")
 
     # create the pacman grid
     for row in range(row_count):
