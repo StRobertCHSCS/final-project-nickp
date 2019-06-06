@@ -12,6 +12,7 @@ tile_height = 40
 # pellet dimension
 pellet_dim = 10
 super_pellet_dim = 20
+super_pellet_capture = [False]*4
 
 # create grid variables
 pac_grid = []
@@ -109,7 +110,9 @@ def draw_ghost(x, y):
 
 
 def draw_maze():
-    global tile_width, tile_height, pac_grid, grid_draw, time
+    global tile_width, tile_height, pac_grid, grid_draw, time, super_pellet_capture
+
+
     # draw out the current grid
     for row in range(row_count):
         for column in range(column_count):
@@ -124,7 +127,14 @@ def draw_maze():
                 draw_pellet(tile_centre_x, tile_centre_y)
             # check if super pellet
             elif pac_grid[row][column] == 3:
-                draw_super_pellet(tile_centre_x, tile_centre_y)
+                if row == 1 and column == 1 and super_pellet_capture[0] == False:
+                    draw_super_pellet(tile_centre_x, tile_centre_y)
+                elif row == 13 and column == 1 and super_pellet_capture[2] == False:
+                    draw_super_pellet(tile_centre_x, tile_centre_y)
+                elif row == 13 and column == 29 and super_pellet_capture[3] == False:
+                    draw_super_pellet(tile_centre_x, tile_centre_y)
+                elif row == 1 and column == 29 and super_pellet_capture[1] == False:
+                    draw_super_pellet(tile_centre_x, tile_centre_y)
 
 
 def write_score(score):
@@ -140,15 +150,20 @@ def change_skin():
         pac_skin = 1
 
 
-def flash_super_pellet():
-    global pac_grid
-    # make pellets flash
-    for r in range(1, 30, 28):
-        for c in range(1, 14, 12):
-            if pac_grid[r][c] == 3:
-                pac_grid[r][c] = 2
-            elif pac_grid[r][c] == 2:
-                pac_grid[r][c] = 3
+# def flash_super_pellet():
+#     global pac_grid, super_pellet_capture
+#     # make pellets flash if not caught
+#     for i in range(len(super_pellet_capture)):
+#         for r in range(1, 14, 12):
+#             for c in range(1, 30, 28):
+#                 if super_pellet_capture[i] == True:
+#                     break
+#                 # super pellets are not caught, flash
+#                 if pac_grid[r][c] == 3:
+#                     pac_grid[r][c] = 2
+#                 elif pac_grid[r][c] == 2:
+#                     pac_grid[r][c] = 3
+
 
 
 def draw_pac(x, y):
@@ -568,33 +583,73 @@ def pac_move(wall_touch):
     pac_x += pac_speed_x
     pac_y += pac_speed_y
 
+def flash_super_pellet():
+    global pac_grid, super_pellet_capture
+    # make pellets flash if not caught
+    for i in range(len(super_pellet_capture)):
+        if super_pellet_capture[i] == False:
+            # check each pellet
+            if i == 0:
+                if pac_grid[1][1] == 3:
+                    pac_grid[1][1] = 2
+                elif pac_grid[1][1] == 2:
+                    pac_grid[1][1] = 3
+            elif i == 1:
+                if pac_grid[1][29] == 3:
+                    pac_grid[1][29] = 2
+                elif pac_grid[1][29] == 2:
+                    pac_grid[1][29] = 3
+            elif i == 2:
+                if pac_grid[13][1] == 3:
+                    pac_grid[13][1] = 2
+                elif pac_grid[13][1] == 2:
+                    pac_grid[13][1] = 3
+            elif i == 3:
+                if pac_grid[13][29] == 3:
+                    pac_grid[13][29] = 2
+                elif pac_grid[13][29] == 2:
+                    pac_grid[13][29] = 3
+
 
 def pac_object_detection(x, y):
     global tile_height, tile_width, pac_rad, pac_grid, row_count, column_count, score, lose, pac_speed_x, pac_speed_y
     global ghost_x1, ghost_y1, ghost_x2, ghost_y2, ghost_x3, ghost_y3, pac_x, pac_y, ghost_speeds, init_arc_angle
-    global final_arc_angle
+    global final_arc_angle, HEIGHT, WIDTH, super_pellet_capture
     # check if pacman is in the middle of a tile (for pellet detection)
-    if x <= 600:
-        check_x = (x + (tile_width // 2)) % tile_width
-    else:
-        check_x = (x - (tile_width // 2)) % tile_width
+    # if x <= WIDTH//2:
+    #     check_x = (x + (tile_width // 2)) % tile_width
+    # else:
+    check_x = (x - (tile_width // 2)) % tile_width
 
-    if y <= 300:
-        check_y = (y + (tile_width // 2)) % tile_width
-    else:
-        check_y = (y - (tile_width // 2)) % tile_width
+    # if y <= HEIGHT//2:
+    #     check_y = (y + (tile_width // 2)) % tile_width
+    # else:
+    check_y = (y - (tile_width // 2)) % tile_width
+
+    # calculate pacman row/column
+    pac_column = int(((x + 20) // 40) - 1)
+    pac_row = int(((y + 20) // 40) - 1)
 
     # in the middle of a tile
+    print(check_x, check_y)
     if check_x == 0 and check_y == 0 and lose == False:
-        # calculate pacman tile
-        pac_column = int(((x + 20) // 40) - 1)
-        pac_row = int(((y + 20) // 40) - 1)
-
         # check if pacman is on a pellet
         if pac_grid[pac_row][pac_column] == 1:
             # change status to nothing
             pac_grid[pac_row][pac_column] = 2
             score += 10
+        # print(super_pellet_capture)
+        # check if pacman is on the super pellet
+    if pac_grid[pac_row][pac_column] == 3:
+        # check which super pellet is caugh abd turn off it's status
+        if pac_row == 1 and pac_column == 1:
+            super_pellet_capture[0] = True
+        elif pac_row == 13 and pac_column == 1:
+            super_pellet_capture[2] = True
+        elif pac_row == 13 and pac_column == 29:
+            super_pellet_capture[3] = True
+        elif pac_row == 1 and pac_column == 29:
+            super_pellet_capture[1] = True
 
     # check if pacman is in contact with any ghost
     distance1 = ((ghost_x1-pac_x)**2 + (ghost_y1-pac_y)**2) ** (1/2)
