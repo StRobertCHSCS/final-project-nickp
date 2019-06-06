@@ -37,9 +37,8 @@ pac_speed_x = 0
 pac_speed_y = 0
 
 # time variable
-time = 0
-time_bar_width = 240
-time_bar_height = 40
+time_1 = 0
+time_2 = 0
 
 #  score variables
 score = 0
@@ -52,13 +51,14 @@ ghost_y2 = 420
 ghost_x3 = 540
 ghost_y3 = 420
 ghost_speeds = [[0, 0], [0, 0], [0, 0]]
+ghost_change_skin = False
 
 # play status variables
 lose = False
 
 
 def on_update(delta_time):
-    global pac_x, pac_y, time, pac_speed_x, pac_speed_y, ghost_x1, ghost_y1, ghost_x2, ghost_y2
+    global pac_x, pac_y, time_1, pac_speed_x, pac_speed_y, ghost_x1, ghost_y1, ghost_x2, ghost_y2, time_2, ghost_change_skin
     wall_touch_pac = wall_collision(pac_x, pac_y)
     pac_move(wall_touch_pac)
     pac_object_detection(pac_x, pac_y)
@@ -75,17 +75,22 @@ def on_update(delta_time):
     wall_touch_ghost3 = wall_collision(ghost_x3, ghost_y3)
     ghost_chase_rand3(wall_touch_ghost3)
 
-    # open and close pac mans mouth
-    time += delta_time
-    if time >= 0.075:
+    # open and close pac mans mouth; flash super pellets
+    time_1 += delta_time
+    if time_1 >= 0.075:
         change_skin()
         flash_super_pellet()
-        time = 0
+        time_1 = 0
 
+    # change ghosts back to blue
+    if ghost_change_skin == True:
+        time_2 += delta_time
+        if time_2 >= 6:
+            ghost_change_skin = False
 
 def on_draw():
     global pac_grid, row_count, column_count, tile_width, tile_height, pac_x ,pac_y, score
-    global ghost_x1, ghost_y1, ghost_x1, ghost_y1, ghost_x3, ghost_y3, WIDTH, HEIGHT
+    global ghost_x1, ghost_y1, ghost_x1, ghost_y1, ghost_x3time, ghost_y3, WIDTH, HEIGHT, ghost_change_skin
 
     arcade.start_render()
     draw_maze()
@@ -94,46 +99,28 @@ def on_draw():
     draw_pac(pac_x, pac_y)
 
     # draw ghosts
-    draw_ghost(ghost_x1, ghost_y1)
-    draw_ghost(ghost_x2, ghost_y2)
-    draw_ghost(ghost_x3, ghost_y3)
+    if ghost_change_skin == False:
+        draw_ghost(ghost_x1, ghost_y1)
+        draw_ghost(ghost_x2, ghost_y2)
+        draw_ghost(ghost_x3, ghost_y3)
+    else:
+        # if super pellet, change color
+        change_ghost(ghost_x1, ghost_y1)
+        change_ghost(ghost_x2, ghost_y2)
+        change_ghost(ghost_x3, ghost_y3)
 
     # draw the score
     write_score(score)
-
-    # write the ghost chase message
-    write_ghost_chase("Ghost Chase")
-
-    # draw the time bar
-    draw_time_bar()
 
     # if player loses, display message
     if lose == True:
         arcade.draw_text("YOU LOSE", WIDTH//2 - (7*tile_width), HEIGHT//2 - (2*tile_width), arcade.color.RED_DEVIL, 100)
 
 
-def draw_time_bar():
-    global time_bar_width, time_bar_height
-    bar_x = 1060
-    bar_y = 640
-    outline_width = 240
-    outline_height = 40
+def change_ghost(x, y):
+    global tile_width, tile_height, texture_ghost_change
+    arcade.draw_texture_rectangle(x, y, tile_width, tile_height, texture_ghost_change, 0)
 
-    # draw bat outline
-    arcade.draw_rectangle_outline(bar_x, bar_y, outline_width, outline_height, arcade.color.WHITE)
-    # draw inner bar
-    arcade.draw_rectangle_filled(bar_x, bar_y, time_bar_width, time_bar_height, arcade.color.ORANGE)
-
-def write_ghost_chase(message):
-    """ Add the caption to the time bar
-
-    :param message: String message to be outputted to the screen
-    :return: nothing
-    """
-    # display the message
-    x = 760
-    y = 630
-    arcade.draw_text(message, x, y, arcade.color.WHITE, 20)
 
 def draw_ghost(x, y):
     global tile_width, tile_height, texture_ghost
@@ -142,7 +129,6 @@ def draw_ghost(x, y):
 
 def draw_maze():
     global tile_width, tile_height, pac_grid, grid_draw, time, super_pellet_capture
-
 
     # draw out the current grid
     for row in range(row_count):
@@ -249,6 +235,7 @@ def wall_collision(x, y):
     # not in mid tile
     else:
         return "null"
+
 
 def ghost_chase_rand2(walls):
     """ Move ghost 2 randomly prohibiting movement through walls
@@ -646,7 +633,7 @@ def flash_super_pellet():
 def pac_object_detection(x, y):
     global tile_height, tile_width, pac_rad, pac_grid, row_count, column_count, score, lose, pac_speed_x, pac_speed_y
     global ghost_x1, ghost_y1, ghost_x2, ghost_y2, ghost_x3, ghost_y3, pac_x, pac_y, ghost_speeds, init_arc_angle
-    global final_arc_angle, HEIGHT, WIDTH, super_pellet_capture
+    global final_arc_angle, HEIGHT, WIDTH, super_pellet_capture, ghost_change_skin
     # check if pacman is in the middle of a tile (for pellet detection)
     # if x <= WIDTH//2:
     #     check_x = (x + (tile_width // 2)) % tile_width
@@ -663,27 +650,27 @@ def pac_object_detection(x, y):
     pac_row = int(((y + 20) // 40) - 1)
 
     # in the middle of a tile
+    print(check_x, check_y)
     if check_x == 0 and check_y == 0 and lose == False:
         # check if pacman is on a pellet
         if pac_grid[pac_row][pac_column] == 1:
             # change status to nothing
             pac_grid[pac_row][pac_column] = 2
             score += 10
-    print(super_pellet_capture)
+        # print(super_pellet_capture)
         # check if pacman is on the super pellet
     if pac_grid[pac_row][pac_column] == 3:
-        # check which super pellet is caught and turn off it's status
+        # check which super pellet is caugh abd turn off it's status
         if pac_row == 1 and pac_column == 1:
             super_pellet_capture[0] = True
-        if pac_row == 13 and pac_column == 1:
+        elif pac_row == 13 and pac_column == 1:
             super_pellet_capture[2] = True
-        if pac_row == 13 and pac_column == 29:
+        elif pac_row == 13 and pac_column == 29:
             super_pellet_capture[3] = True
-        if pac_row == 1 and pac_column == 29:
+        elif pac_row == 1 and pac_column == 29:
             super_pellet_capture[1] = True
 
-        # start the time for the pacman chase
-        # move_time_bar()
+        ghost_change_skin = True
 
     # check if pacman is in contact with any ghost
     distance1 = ((ghost_x1-pac_x)**2 + (ghost_y1-pac_y)**2) ** (1/2)
@@ -769,8 +756,8 @@ def on_mouse_press(x, y, button, modifiers):
 
 
 def setup():
-    global pac_grid, row_count, column_count, texture_tile, texture_pellet, texture_ghost
-    global pac_grid, row_count, column_count, tile_width, tile_height, pac_x,pac_y, score
+    global pac_grid, row_count, column_count, texture_tile, texture_pellet, texture_ghost, texture_ghost_change
+    global pac_grid, row_count, column_count, tile_width, tile_height, pac_x, pac_y, score
     arcade.open_window(WIDTH, HEIGHT, "My Arcade Game")
     arcade.set_background_color(arcade.color.BLACK)
     arcade.schedule(on_update, 1/60)
@@ -786,6 +773,7 @@ def setup():
     texture_tile = arcade.load_texture("pacific-blue-high-sheen-merola-tile-mosaic-tile-fyfl1spa-64_1000.jpg")
     texture_pellet = arcade.load_texture("Gold_Coin_PNG_Clipart-663.png")
     texture_ghost = arcade.load_texture("Pac-Man-Ghost-PNG-Image.png")
+    texture_ghost_change = arcade.load_texture("Download-Pac-Man-Ghost-PNG-Transparent-Image.png")
 
     # create the pacman grid
     for row in range(row_count):
