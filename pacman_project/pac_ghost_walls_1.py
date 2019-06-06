@@ -597,6 +597,7 @@ def pac_object_detection(x, y):
         init_arc_angle = 0
         final_arc_angle = 360
 
+
 def draw_wall_tile(x, y):
     global tile_height, tile_width, texture_tile
     # display fire image on screen
@@ -744,6 +745,7 @@ def setup():
                 pac_grid[row].append(1)
 
     arcade.run()
+
 
 if __name__ == '__main__':
     setup()

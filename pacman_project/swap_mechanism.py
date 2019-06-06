@@ -168,22 +168,6 @@ def change_skin():
         pac_skin = 1
 
 
-# def flash_super_pellet():
-#     global pac_grid, super_pellet_capture
-#     # make pellets flash if not caught
-#     for i in range(len(super_pellet_capture)):
-#         for r in range(1, 14, 12):
-#             for c in range(1, 30, 28):
-#                 if super_pellet_capture[i] == True:
-#                     break
-#                 # super pellets are not caught, flash
-#                 if pac_grid[r][c] == 3:
-#                     pac_grid[r][c] = 2
-#                 elif pac_grid[r][c] == 2:
-#                     pac_grid[r][c] = 3
-
-
-
 def draw_pac(x, y):
     global pac_skin
     # open mouth
@@ -657,7 +641,7 @@ def pac_object_detection(x, y):
             # change status to nothing
             pac_grid[pac_row][pac_column] = 2
             score += 10
-    print(super_pellet_capture)
+    print(pac_grid[pac_row][pac_column])
     # check if pacman is on the super pellet
     if pac_grid[pac_row][pac_column] == 3:
         # check which super pellet is caugh abd turn off it's status
@@ -678,7 +662,7 @@ def pac_object_detection(x, y):
     distance3 = ((ghost_x3-pac_x)**2 + (ghost_y3-pac_y)**2) ** (1/2)
 
     # check if pacman is in contact with a ghost; stop the scoring and ghosts
-    if distance1 < tile_width or distance2 < tile_width or distance3 < tile_width:
+    if (distance1 < tile_width or distance2 < tile_width or distance3 < tile_width) and ghost_change_skin == False:
         for speedx in range(len(ghost_speeds)):
             for speedy in range(len(ghost_speeds[speedx])):
                 ghost_speeds[speedx][speedy] = 0
@@ -689,6 +673,22 @@ def pac_object_detection(x, y):
         pac_speed_y = 0
         init_arc_angle = 0
         final_arc_angle = 360
+
+    # pacman in contact with ghost; gain points
+    elif ghost_change_skin == True:
+        if distance1 < tile_width:
+            score += 200
+            ghost_x1 = 780
+            ghost_y1 = 220
+        if distance2 < tile_width:
+            score += 200
+            ghost_x2 = 780
+            ghost_y2 = 420
+        if distance3 < tile_width:
+            score += 200
+            ghost_x3 = 540
+            ghost_y3 = 420
+
 
 def draw_wall_tile(x, y):
     global tile_height, tile_width, texture_tile
@@ -710,6 +710,7 @@ def draw_super_pellet(x, y):
     global super_pellet_dim, texture_pellet
     # draw the super pellet
     arcade.draw_texture_rectangle(x, y, super_pellet_dim, super_pellet_dim, texture_pellet, 0)
+
 
 def draw_pellet(x, y):
     global pellet_dim, texture_pellet
@@ -844,7 +845,7 @@ def setup():
             elif 6 <= row <= 8 and 14 <= column <= 16:
                 # append nothing
                 pac_grid[row].append(2)
-            elif  (1 <= column <= 29) and (1 <= row <= 13):
+            elif (1 <= column <= 29) and (1 <= row <= 13):
                 pac_grid[row].append(1)
 
     arcade.run()

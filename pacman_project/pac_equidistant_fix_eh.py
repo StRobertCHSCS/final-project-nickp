@@ -261,7 +261,6 @@ def ghost_chase_rand3(walls):
     # create an empty list of ghost 2 possible speeds
     ghost3_poss_speeds = [10, -10, -10, 10]
 
-
     # check if ghost is midtile
     if walls != "null":
         # set possible speeds in wall touch direction to zero
