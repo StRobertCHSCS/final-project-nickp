@@ -58,22 +58,31 @@ lose = False
 
 
 def on_update(delta_time):
-    global pac_x, pac_y, time_1, pac_speed_x, pac_speed_y, ghost_x1, ghost_y1, ghost_x2, ghost_y2, time_2, ghost_change_skin
+    global pac_x, pac_y, time_1, pac_speed_x, pac_speed_y, ghost_x1, ghost_y1, ghost_x2, ghost_y2, time_2
+    global ghost_change_skin, ghost_x3, ghost_y3
+
     wall_touch_pac = wall_collision(pac_x, pac_y)
     pac_move(wall_touch_pac)
     pac_object_detection(pac_x, pac_y)
 
-    # control ghost 1 motion; super ghost can move through walls
+    # check the walls the ghosts are in contact with
     wall_touch_ghost1 = wall_collision(ghost_x1, ghost_y1)
-    ghost_chase1(wall_touch_ghost1)
+    wall_touch_ghost2 = wall_collision(ghost_x2, ghost_y2)
+    wall_touch_ghost3 = wall_collision(ghost_x3, ghost_y3)
 
     # random ghost 2 motion; unable to go through walls
-    wall_touch_ghost2 = wall_collision(ghost_x2, ghost_y2)
     ghost_chase_rand2(wall_touch_ghost2)
 
-    # randome ghost 3 motion; unable to go through walls, slight attraction to pacman
-    wall_touch_ghost3 = wall_collision(ghost_x3, ghost_y3)
-    ghost_chase_rand3(wall_touch_ghost3)
+    if ghost_change_skin == False:
+        # control ghost 1 motion; super ghost can move through walls
+        ghost_chase1(wall_touch_ghost1)
+        # random ghost 3 motion; unable to go through walls, slight attraction to pacman
+        ghost_chase_rand3(wall_touch_ghost3)
+
+    else:
+        # if pacman had super coin, move away
+        ghost_repel(0, ghost_x1, ghost_y1, wall_touch_ghost1)
+        ghost_repel(2, ghost_x3, ghost_y3, wall_touch_ghost3)
 
     # open and close pac mans mouth; flash super pellets
     time_1 += delta_time
@@ -88,6 +97,7 @@ def on_update(delta_time):
         if time_2 >= 6:
             ghost_change_skin = False
             time_2 = 0
+
 
 def on_draw():
     global pac_grid, row_count, column_count, tile_width, tile_height, pac_x ,pac_y, score
@@ -222,6 +232,62 @@ def wall_collision(x, y):
         return "null"
 
 
+def ghost_repel(g_num, g_x, g_y, walls):
+    """ Make the ghosts repel when pacman has the super pellet
+
+    :param g_num: ghost number (related to ghost_speeds, which starts at 0)
+    :param g_x: x position of ghost
+    :param g_y: y position of ghost
+    :param walls: list of walls ghost is in contact with
+    :return: none
+    """
+    global ghost_speeds, pac_x, pac_y
+
+    # create an empty list of speeds
+    ghost_poss_speeds = [8, -8, -8, 8]
+
+    # check if ghost is midtile
+    if walls != "null":
+        # set possible speeds in wall touch direction to zero
+        for wall in walls:
+            if wall == "up":
+                ghost_poss_speeds[0] = 0
+                ghost_speeds[g_num][1] = 0
+            elif wall == "down":
+                ghost_poss_speeds[1] = 0
+                ghost_speeds[g_num][1] = 0
+            if wall == "left":
+                ghost_poss_speeds[2] = 0
+                ghost_speeds[g_num][0] = 0
+            elif wall == "right":
+                ghost_poss_speeds[3] = 0
+                ghost_speeds[g_num][0] = 0
+
+        # calculate the x and y differences between pac and ghost
+        x_distance = g_x - pac_x
+        y_distance = g_x - pac_y
+
+        # closer in the y than in the x; move in the y to move further
+        if abs(x_distance) >= abs(y_distance):
+            if y_distance >= 0 and ghost_poss_speeds[0] != 0:
+                # ghost ontop of pac; try to move up
+                ghost_speeds[g_num][1] = ghost_poss_speeds[0]
+                ghost_speeds[g_num][0] = 0
+            elif y_distance < 0 and ghost_poss_speeds[1] != 0:
+                # ghost under pac; try to move down
+                ghost_speeds[g_num][1] = ghost_poss_speeds[1]
+                ghost_speeds[g_num][0] = 0
+            else:
+                if x_distance >= 0 and ghost_poss_speeds[3] != 0:
+                    # cant move up or down, move left or right
+                    ghost_speeds[g_num][0] = ghost_poss_speeds[3]
+                    ghost_speeds[g_num][1] = 0
+                else:
+                    # ghost is left, continue to move left
+                    ghost_speeds[g_num][0] = ghost_poss_speeds[2]
+                    ghost_speeds[g_num][1] = 0
+
+
 def ghost_chase_rand2(walls):
     """ Move ghost 2 randomly prohibiting movement through walls
 
@@ -254,7 +320,7 @@ def ghost_chase_rand2(walls):
 
         # check if ghost in currently in motion
         if ghost_speeds[1][0] == 0 and ghost_speeds[1][1] == 0:
-            rand_move = random.randint(0,3)
+            rand_move = random.randint(0, 3)
             while ghost2_poss_speeds[rand_move] == 0:
                 rand_move = random.randint(0, 3)
             if rand_move == 0:
