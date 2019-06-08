@@ -39,6 +39,10 @@ pac_speed_y = 0
 # time variable
 time_1 = 0
 time_2 = 0
+time_bar_width = 240
+time_bar_height = 40
+chase_time = 8
+init_time_bar_width = 240
 
 #  score variables
 score = 0
@@ -59,7 +63,7 @@ lose = False
 
 def on_update(delta_time):
     global pac_x, pac_y, time_1, pac_speed_x, pac_speed_y, ghost_x1, ghost_y1, ghost_x2, ghost_y2, time_2
-    global ghost_change_skin, ghost_x3, ghost_y3
+    global ghost_change_skin, ghost_x3, ghost_y3, chase_time, time_bar_width
 
     wall_touch_pac = wall_collision(pac_x, pac_y)
     pac_move(wall_touch_pac)
@@ -78,6 +82,7 @@ def on_update(delta_time):
         ghost_chase1(wall_touch_ghost1)
         # random ghost 3 motion; unable to go through walls, slight attraction to pacman
         ghost_chase_rand3(wall_touch_ghost3)
+        time_bar_width = init_time_bar_width
 
     else:
         # if pacman had super coin, move away
@@ -94,13 +99,13 @@ def on_update(delta_time):
     # change ghosts back to blue
     if ghost_change_skin == True:
         time_2 += delta_time
-        if time_2 >= 6:
+        if time_2 >= chase_time:
             ghost_change_skin = False
             time_2 = 0
 
 
 def on_draw():
-    global pac_grid, row_count, column_count, tile_width, tile_height, pac_x ,pac_y, score
+    global pac_grid, row_count, column_count, tile_width, tile_height, pac_x ,pac_y, score, time_2
     global ghost_x1, ghost_y1, ghost_x1, ghost_y1, ghost_x3time, ghost_y3, WIDTH, HEIGHT, ghost_change_skin
 
     arcade.start_render()
@@ -114,14 +119,22 @@ def on_draw():
         draw_ghost(ghost_x1, ghost_y1)
         draw_ghost(ghost_x2, ghost_y2)
         draw_ghost(ghost_x3, ghost_y3)
+        # draw the time number as the chase time
+        draw_time_num(chase_time)
     else:
         # if super pellet, change color
         change_ghost(ghost_x1, ghost_y1)
         change_ghost(ghost_x2, ghost_y2)
         change_ghost(ghost_x3, ghost_y3)
+        # draw the time number
+        draw_time_num(chase_time-time_2)
 
     # draw the score
     write_score(score)
+
+    # write the ghost chase message
+    write_ghost_chase("Ghost Chase Time: ")
+
 
     # if player loses, display message
     if lose == True:
@@ -131,6 +144,29 @@ def on_draw():
 def change_ghost(x, y):
     global tile_width, tile_height, texture_ghost_change
     arcade.draw_texture_rectangle(x, y, tile_width, tile_height, texture_ghost_change, 0)
+
+
+def draw_time_num(time):
+    """ Write how long is left for the chase
+
+    :param time: Time to output
+    :return: none
+    """
+    # writ the time slightly moved over from the time message
+    round_time = round(time, 2)
+    arcade.draw_text(str(round_time), 975, 630, arcade.color.ORANGE, 20)
+
+
+def write_ghost_chase(message):
+    """ Add the caption to the time bar
+
+    :param message: String message to be outputted to the screen
+    :return: nothing
+    """
+    # display the message
+    x = 760
+    y = 630
+    arcade.draw_text(message, x, y, arcade.color.WHITE, 20)
 
 
 def draw_ghost(x, y):
@@ -244,7 +280,7 @@ def ghost_repel(g_num, g_x, g_y, walls):
     global ghost_speeds, pac_x, pac_y
 
     # create an empty list of speeds
-    ghost_poss_speeds = [8, -8, -8, 8]
+    ghost_poss_speeds = [5, -5, -5, 5]
 
     # check if ghost is midtile
     if walls != "null":
@@ -265,7 +301,7 @@ def ghost_repel(g_num, g_x, g_y, walls):
 
         # calculate the x and y differences between pac and ghost
         x_distance = g_x - pac_x
-        y_distance = g_x - pac_y
+        y_distance = g_y - pac_y
 
         # closer in the y than in the x; move in the y to move further
         if abs(x_distance) >= abs(y_distance):
@@ -279,7 +315,7 @@ def ghost_repel(g_num, g_x, g_y, walls):
                 ghost_speeds[g_num][0] = 0
             else:
                 if x_distance >= 0 and ghost_poss_speeds[3] != 0:
-                    # cant move up or down, move left or right
+                    # cant move up or down, move right if further to the right
                     ghost_speeds[g_num][0] = ghost_poss_speeds[3]
                     ghost_speeds[g_num][1] = 0
                 else:
@@ -733,20 +769,19 @@ def pac_object_detection(x, y):
             # change status to nothing
             pac_grid[pac_row][pac_column] = 2
             score += 10
-    print(pac_grid[pac_row][pac_column])
-    # check if pacman is on the super pellet
+    # check if pacman is on the super pellet (3 or 2 when flashing)
     if pac_grid[pac_row][pac_column] == 3:
         # check which super pellet is caught and turn off it's status
-        if pac_row == 1 and pac_column == 1:
+        if pac_row == 1 and pac_column == 1 and super_pellet_capture[0] != True:
             super_pellet_capture[0] = True
             pac_grid[1][1] = 2
-        elif pac_row == 13 and pac_column == 1:
+        elif pac_row == 13 and pac_column == 1 and super_pellet_capture[2] != True:
             super_pellet_capture[2] = True
             pac_grid[13][1] = 2
-        elif pac_row == 13 and pac_column == 29:
+        elif pac_row == 13 and pac_column == 29 and super_pellet_capture[3] != True:
             super_pellet_capture[3] = True
             pac_grid[13][29] = 2
-        elif pac_row == 1 and pac_column == 29:
+        elif pac_row == 1 and pac_column == 29 and super_pellet_capture[1] != True:
             super_pellet_capture[1] = True
             pac_grid[1][29] = 2
 
@@ -815,33 +850,34 @@ def draw_pellet(x, y):
 
 
 def on_key_press(key, modifiers):
-    global up_pressed, down_pressed, left_pressed, right_pressed
+    global up_pressed, down_pressed, left_pressed, right_pressed, lose
     # create a key list
     key_pressed_list = [0] * 4
+    # only run if pacman hasnt lost
+    if lose == False:
+        # check if any key is pressed, if it is set that direction to true (move in 1 direction)
+        if key == arcade.key.UP:
+            up_pressed = True
+            key_pressed_list[0] = 1
+        elif key == arcade.key.DOWN:
+            down_pressed = True
+            key_pressed_list[1] = 1
+        elif key == arcade.key.LEFT:
+            left_pressed = True
+            key_pressed_list[2] = 1
+        elif key == arcade.key.RIGHT:
+            right_pressed = True
+            key_pressed_list[3] = 1
+        key_pressed_boolean = [up_pressed, down_pressed, left_pressed, right_pressed]
 
-    # check if any key is pressed, if it is set that direction to true (move in 1 direction)
-    if key == arcade.key.UP:
-        up_pressed = True
-        key_pressed_list[0] = 1
-    elif key == arcade.key.DOWN:
-        down_pressed = True
-        key_pressed_list[1] = 1
-    elif key == arcade.key.LEFT:
-        left_pressed = True
-        key_pressed_list[2] = 1
-    elif key == arcade.key.RIGHT:
-        right_pressed = True
-        key_pressed_list[3] = 1
-    key_pressed_boolean = [up_pressed, down_pressed, left_pressed, right_pressed]
-
-    # turn off all keys which are not pressed, account for no on key released
-    for i in range(len(key_pressed_list)):
-        if key_pressed_list[i] == 0:
-            key_pressed_boolean[i] = False
-    up_pressed = key_pressed_boolean[0]
-    down_pressed = key_pressed_boolean[1]
-    left_pressed = key_pressed_boolean[2]
-    right_pressed = key_pressed_boolean[3]
+        # turn off all keys which are not pressed, account for no on key released
+        for i in range(len(key_pressed_list)):
+            if key_pressed_list[i] == 0:
+                key_pressed_boolean[i] = False
+        up_pressed = key_pressed_boolean[0]
+        down_pressed = key_pressed_boolean[1]
+        left_pressed = key_pressed_boolean[2]
+        right_pressed = key_pressed_boolean[3]
 
 
 def on_key_release(key, modifiers):
@@ -869,8 +905,8 @@ def setup():
     # load images in setup
     texture_tile = arcade.load_texture("pacific-blue-high-sheen-merola-tile-mosaic-tile-fyfl1spa-64_1000.jpg")
     texture_pellet = arcade.load_texture("Gold_Coin_PNG_Clipart-663.png")
-    texture_ghost = arcade.load_texture("Pac-Man-Ghost-PNG-Image.png")
-    texture_ghost_change = arcade.load_texture("Download-Pac-Man-Ghost-PNG-Transparent-Image.png")
+    texture_ghost_change = arcade.load_texture("Pac-Man-Ghost-PNG-Image.png")
+    texture_ghost = arcade.load_texture("Download-Pac-Man-Ghost-PNG-Transparent-Image.png")
 
     # create the pacman grid
     for row in range(row_count):

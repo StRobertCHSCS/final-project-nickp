@@ -39,6 +39,10 @@ pac_speed_y = 0
 # time variable
 time_1 = 0
 time_2 = 0
+time_bar_width = 240
+time_bar_height = 40
+chase_time = 6
+init_time_bar_width = 240
 
 #  score variables
 score = 0
@@ -59,7 +63,7 @@ lose = False
 
 def on_update(delta_time):
     global pac_x, pac_y, time_1, pac_speed_x, pac_speed_y, ghost_x1, ghost_y1, ghost_x2, ghost_y2, time_2
-    global ghost_change_skin, ghost_x3, ghost_y3
+    global ghost_change_skin, ghost_x3, ghost_y3, chase_time, time_bar_width
 
     wall_touch_pac = wall_collision(pac_x, pac_y)
     pac_move(wall_touch_pac)
@@ -78,11 +82,15 @@ def on_update(delta_time):
         ghost_chase1(wall_touch_ghost1)
         # random ghost 3 motion; unable to go through walls, slight attraction to pacman
         ghost_chase_rand3(wall_touch_ghost3)
+        time_bar_width = init_time_bar_width
 
     else:
         # if pacman had super coin, move away
         ghost_x1, ghost_y1 = ghost_repel(0, ghost_x1, ghost_y1, wall_touch_ghost1)
         ghost_x3, ghost_y3 = ghost_repel(2, ghost_x3, ghost_y3, wall_touch_ghost3)
+
+        time_bar_width = reduce_bar(time_bar_width)
+        print(time_2, time_bar_width)
 
     # open and close pac mans mouth; flash super pellets
     time_1 += delta_time
@@ -94,7 +102,7 @@ def on_update(delta_time):
     # change ghosts back to blue
     if ghost_change_skin == True:
         time_2 += delta_time
-        if time_2 >= 6:
+        if time_2 >= chase_time:
             ghost_change_skin = False
             time_2 = 0
 
@@ -123,6 +131,12 @@ def on_draw():
     # draw the score
     write_score(score)
 
+    # write the ghost chase message
+    write_ghost_chase("Ghost Chase")
+
+    # draw the time bar
+    draw_time_bar()
+
     # if player loses, display message
     if lose == True:
         arcade.draw_text("YOU LOSE", WIDTH//2 - (7*tile_width), HEIGHT//2 - (2*tile_width), arcade.color.RED_DEVIL, 100)
@@ -131,6 +145,50 @@ def on_draw():
 def change_ghost(x, y):
     global tile_width, tile_height, texture_ghost_change
     arcade.draw_texture_rectangle(x, y, tile_width, tile_height, texture_ghost_change, 0)
+
+
+def reduce_bar(bar_width):
+    """ Shorten the time bar as the pellet is running out
+
+    :param bar_width: the current width of the bar
+    :return: the new width of the bar
+    """
+    global chase_time, init_time_bar_width
+    # calculate reduction per second using velocity formula
+    reduce_speed_second = -(init_time_bar_width/chase_time)
+
+    # calculate reduction per frame; 60 fps
+    reduce_speed_frame = reduce_speed_second/13.2
+    print(reduce_speed_frame)
+
+    # calculate and return new bar width
+    bar_width += reduce_speed_frame
+    return bar_width
+
+
+def draw_time_bar():
+    global time_bar_width, time_bar_height
+    bar_x = 1060
+    bar_y = 640
+    outline_width = 240
+    outline_height = 40
+
+    # draw bat outline
+    arcade.draw_rectangle_outline(bar_x, bar_y, outline_width, outline_height, arcade.color.WHITE)
+    # draw inner bar
+    arcade.draw_rectangle_filled(bar_x, bar_y, time_bar_width, time_bar_height, arcade.color.ORANGE)
+
+
+def write_ghost_chase(message):
+    """ Add the caption to the time bar
+
+    :param message: String message to be outputted to the screen
+    :return: nothing
+    """
+    # display the message
+    x = 760
+    y = 630
+    arcade.draw_text(message, x, y, arcade.color.WHITE, 20)
 
 
 def draw_ghost(x, y):
@@ -244,7 +302,7 @@ def ghost_repel(g_num, g_x, g_y, walls):
     global ghost_speeds, pac_x, pac_y
 
     # create an empty list of speeds
-    ghost_poss_speeds = [8, -8, -8, 8]
+    ghost_poss_speeds = [5, -5, -5, 5]
 
     # check if ghost is midtile
     if walls != "null":
@@ -733,20 +791,19 @@ def pac_object_detection(x, y):
             # change status to nothing
             pac_grid[pac_row][pac_column] = 2
             score += 10
-    print(pac_grid[pac_row][pac_column])
-    # check if pacman is on the super pellet
+    # check if pacman is on the super pellet (3 or 2 when flashing)
     if pac_grid[pac_row][pac_column] == 3:
         # check which super pellet is caught and turn off it's status
-        if pac_row == 1 and pac_column == 1:
+        if pac_row == 1 and pac_column == 1 and super_pellet_capture[0] != True:
             super_pellet_capture[0] = True
             pac_grid[1][1] = 2
-        elif pac_row == 13 and pac_column == 1:
+        elif pac_row == 13 and pac_column == 1 and super_pellet_capture[2] != True:
             super_pellet_capture[2] = True
             pac_grid[13][1] = 2
-        elif pac_row == 13 and pac_column == 29:
+        elif pac_row == 13 and pac_column == 29 and super_pellet_capture[3] != True:
             super_pellet_capture[3] = True
             pac_grid[13][29] = 2
-        elif pac_row == 1 and pac_column == 29:
+        elif pac_row == 1 and pac_column == 29 and super_pellet_capture[1] != True:
             super_pellet_capture[1] = True
             pac_grid[1][29] = 2
 
