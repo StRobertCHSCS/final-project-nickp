@@ -118,7 +118,7 @@ def on_draw():
 
     :return: none
     """
-    global pac_grid, row_count, column_count, tile_width, tile_height, pac_x ,pac_y, score, time_2
+    global pac_grid, row_count, column_count, tile_width, tile_height, pac_x, pac_y, score, time_2
     global ghost_x1, ghost_y1, ghost_x2, ghost_y2, ghost_x3, ghost_y3, WIDTH, HEIGHT, ghost_change_skin
     global lose, win
 
@@ -148,7 +148,6 @@ def on_draw():
 
     # write the ghost chase message
     write_ghost_chase("Ghost Chase Time: ")
-
 
     # if player loses, display message
     if lose == True:
