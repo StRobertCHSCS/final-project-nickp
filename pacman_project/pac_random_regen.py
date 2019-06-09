@@ -65,12 +65,18 @@ win = False
 
 
 def on_update(delta_time):
+    """ Update any logical this in the code here; continous loop
+
+    :param delta_time: time which starts counting when the program starts
+    :return: none
+    """
     global pac_x, pac_y, time_1, pac_speed_x, pac_speed_y, ghost_x1, ghost_y1, ghost_x2, ghost_y2, time_2
     global ghost_change_skin, ghost_x3, ghost_y3, chase_time, time_bar_width
 
     wall_touch_pac = wall_collision(pac_x, pac_y)
     pac_move(wall_touch_pac)
     pac_object_detection(pac_x, pac_y)
+    pac_win_lose(pac_x, pac_y)
 
     # check the walls the ghosts are in contact with
     wall_touch_ghost1 = wall_collision(ghost_x1, ghost_y1)
@@ -108,8 +114,12 @@ def on_update(delta_time):
 
 
 def on_draw():
+    """ Draw everything here; continous loop
+
+    :return: none
+    """
     global pac_grid, row_count, column_count, tile_width, tile_height, pac_x ,pac_y, score, time_2
-    global ghost_x1, ghost_y1, ghost_x2, ghost_y2, ghost_x3, time, ghost_y3, WIDTH, HEIGHT, ghost_change_skin
+    global ghost_x1, ghost_y1, ghost_x2, ghost_y2, ghost_x3, ghost_y3, WIDTH, HEIGHT, ghost_change_skin
     global lose, win
 
     arcade.start_render()
@@ -148,6 +158,12 @@ def on_draw():
 
 
 def change_ghost(x, y):
+    """ When the super pellet is collected, change the ghost's skin/costume
+
+    :param x: x position of ghost
+    :param y: y position of ghost
+    :return: none
+    """
     global tile_width, tile_height, texture_ghost_change
     arcade.draw_texture_rectangle(x, y, tile_width, tile_height, texture_ghost_change, 0)
 
@@ -176,12 +192,22 @@ def write_ghost_chase(message):
 
 
 def draw_ghost(x, y):
+    """ Draw a ghost to the screen
+
+    :param x: x position of ghost
+    :param y: y position of ghost
+    :return: none
+    """
     global tile_width, tile_height, texture_ghost
     arcade.draw_texture_rectangle(x, y, tile_width, tile_height, texture_ghost, 0)
 
 
 def draw_maze():
-    global tile_width, tile_height, pac_grid, grid_draw, time, super_pellet_capture
+    """ Draw the maze to the screen depending on the status of pac_grid
+
+    :return: none
+    """
+    global tile_width, tile_height, pac_grid, grid_draw, super_pellet_capture
 
     # draw out the current grid
     for row in range(row_count):
@@ -208,10 +234,19 @@ def draw_maze():
 
 
 def write_score(score):
+    """ Output (write) the current score to the screen
+
+    :param score: current score as in integer value; multiple of 10
+    :return: none
+    """
     arcade.draw_text(str(score), 40, 640, arcade.color.WHITE, 40)
 
 
 def change_skin():
+    """ Change pacman's skin status from 1 to 0 (and vice versa)
+
+    :return: none
+    """
     # change pacman from open to close mouth
     global pac_skin
     if pac_skin == 1:
@@ -221,6 +256,12 @@ def change_skin():
 
 
 def draw_pac(x, y):
+    """ Depending on the current pacman skin (closed or open), change/draw pacman
+
+    :param x: x position of pacman
+    :param y: y position of pacman
+    :return: none
+    """
     global pac_skin
     # open mouth
     if pac_skin == 0:
@@ -231,6 +272,12 @@ def draw_pac(x, y):
 
 
 def wall_collision(x, y):
+    """ Check which walls pacman is currently in contact with
+
+    :param x: x position of pacman
+    :param y: y position of pacman
+    :return: list of walls pacman is in contact with (or null if pacman is mid tile)
+    """
     global tile_height, tile_width, pac_rad, pac_grid, row_count, column_count, WIDTH, HEIGHT
     # check if pacman/ghost is in the middle of a tile
     if x <= WIDTH//2:
@@ -246,7 +293,7 @@ def wall_collision(x, y):
     # in the middle of a tile
     if check_x == 0 and check_y == 0:
         # calculate pacman tile
-        pac_column  = int(((x + 20) // 40) - 1)
+        pac_column = int(((x + 20) // 40) - 1)
         pac_row = int(((y + 20) // 40) - 1)
 
         # calculte rows and columns adjectent to pacman
@@ -419,7 +466,7 @@ def ghost_chase_rand2(walls):
 def ghost_chase_rand3(walls):
     """ Move ghost 3 with slight attraction to pacman without going through walls
 
-    :param walls: Walls ghost 3 is currently in contact with
+    :param walls: List of walls ghost 3 is currently in contact with or null
     :return: none
     """
     global ghost_speeds, ghost_x3, ghost_y3, pac_x, pac_y
@@ -544,7 +591,11 @@ def ghost_chase_rand3(walls):
 
 
 def ghost_chase1(walls):
+    """ Move ghost 3 with slight attraction to pacman without going through walls
 
+     :param walls: List of walls ghost 3 is currently in contact with or null
+     :return: none
+     """
     global ghost_speeds, ghost_x1, ghost_y1
     # create an empty list of ghost 2 possible speeds
     ghost1_poss_speeds = [10, -10, -10, 10]
@@ -666,6 +717,11 @@ def ghost_chase1(walls):
 
 
 def pac_move(wall_touch):
+    """ move pacman making sure it can't go through walls
+
+    :param wall_touch: list of walls pacman is currently in contct with
+    :return: none
+    """
     global pac_speed_x, pac_speed_y, up_pressed, down_pressed, left_pressed, right_pressed, pac_x, pac_y
     global init_arc_angle, final_arc_angle, lose, win
 
@@ -724,6 +780,10 @@ def pac_move(wall_touch):
 
 
 def flash_super_pellet():
+    """ Make the super pellets flash
+
+    :return: none
+    """
     global pac_grid, super_pellet_capture
     # make pellets flash if not caught
     for i in range(len(super_pellet_capture)):
@@ -752,9 +812,15 @@ def flash_super_pellet():
 
 
 def pac_object_detection(x, y):
+    """ Check any objects (other than walls) which pacman is in contact with
+
+    :param x: x position of pacman
+    :param y: y position of pacman
+    :return: none
+    """
     global tile_width, pac_rad, pac_grid, row_count, column_count, score, lose, pac_speed_x, pac_speed_y
-    global ghost_x1, ghost_y1, ghost_x2, ghost_y2, ghost_x3, ghost_y3, pac_x, pac_y, ghost_speeds, init_arc_angle
-    global final_arc_angle, HEIGHT, WIDTH, super_pellet_capture, ghost_change_skin, ghost_rand_x, ghost_rand_y, win
+    global ghost_x1, ghost_y1, ghost_x2, ghost_y2, ghost_x3, ghost_y3, ghost_speeds, init_arc_angle
+    global final_arc_angle, super_pellet_capture, ghost_change_skin, ghost_rand_x, ghost_rand_y, win
     # check if pacman is in the middle of a tile (for pellet detection)
     check_x = (x - (tile_width // 2)) % tile_width
     check_y = (y - (tile_width // 2)) % tile_width
@@ -789,16 +855,12 @@ def pac_object_detection(x, y):
         ghost_change_skin = True
 
     # check if pacman is in contact with any ghost
-    distance1 = ((ghost_x1-pac_x)**2 + (ghost_y1-pac_y)**2) ** (1/2)
-    distance2 = ((ghost_x2-pac_x)**2 + (ghost_y2-pac_y)**2) ** (1/2)
-    distance3 = ((ghost_x3-pac_x)**2 + (ghost_y3-pac_y)**2) ** (1/2)
-
-    # check if pacman is in contact with a ghost
-    if (distance1 < tile_width or distance2 < tile_width or distance3 < tile_width) and ghost_change_skin == False:
-        lose = True
+    distance1 = ((ghost_x1-x)**2 + (ghost_y1-y)**2) ** (1/2)
+    distance2 = ((ghost_x2-x)**2 + (ghost_y2-y)**2) ** (1/2)
+    distance3 = ((ghost_x3-x)**2 + (ghost_y3-y)**2) ** (1/2)
 
     # pacman in contact with ghost; gain points
-    elif ghost_change_skin == True:
+    if ghost_change_skin == True:
         if distance1 < tile_width:
             score += 200
             # change ghost to random position near the middle
@@ -814,6 +876,24 @@ def pac_object_detection(x, y):
             # change ghost to random position near the middle
             ghost_x3 = ghost_rand_x[random.randint(0, 1)]
             ghost_y3 = ghost_rand_y[random.randint(0, 2)]
+
+
+def pac_win_lose(x, y):
+    """ Check if pacman has won or lost the game
+
+    :param x: pacman x position
+    :param y: pacman y position
+    :return: none
+    """
+    global pac_speed_x, pac_speed_y, init_arc_angle, final_arc_angle, ghost_speeds, win, lose, tile_width
+    # check if pacman is in contact with any ghost
+    distance1 = ((ghost_x1 - x) ** 2 + (ghost_y1 - y) ** 2) ** (1 / 2)
+    distance2 = ((ghost_x2 - x) ** 2 + (ghost_y2 - y) ** 2) ** (1 / 2)
+    distance3 = ((ghost_x3 - x) ** 2 + (ghost_y3 - y) ** 2) ** (1 / 2)
+
+    # check if pacman is in contact with a ghost
+    if (distance1 < tile_width or distance2 < tile_width or distance3 < tile_width) and ghost_change_skin == False:
+        lose = True
 
     # check if pacman has won; stop the game
     total_pellets = 0
@@ -840,34 +920,70 @@ def pac_object_detection(x, y):
 
 
 def draw_wall_tile(x, y):
+    """ Draw a wall tile
+
+    :param x: x position of wall tile
+    :param y: y position of wall tile
+    :return: none
+    """
     global tile_height, tile_width, texture_tile
     # display fire image on screen
     arcade.draw_texture_rectangle(x, y, tile_width, tile_height, texture_tile, 0)
 
 
 def draw_pacman_closed(x, y):
+    """ Draw pacman with his mouth closed
+
+    :param x: x position of pacman
+    :param y: y position of pacmam
+    :return: none
+    """
     global pac_rad
     arcade.draw_circle_filled(x, y, pac_rad, arcade.color.YELLOW)
 
 
 def draw_pacman_open(x, y):
+    """ Draw pacman with his mouth open
+
+    :param x: pacman x position
+    :param y: pacman y position
+    :return: none
+    """
     global pac_rad, init_arc_angle, final_arc_angle
     arcade.draw_arc_filled(x, y, pac_rad, pac_rad, arcade.color.YELLOW, init_arc_angle, final_arc_angle)
 
 
 def draw_super_pellet(x, y):
+    """ Draw the super pellet on the screen
+
+    :param x: x position of super pellet
+    :param y: y position of super pellet
+    :return: none
+    """
     global super_pellet_dim, texture_pellet
     # draw the super pellet
     arcade.draw_texture_rectangle(x, y, super_pellet_dim, super_pellet_dim, texture_pellet, 0)
 
 
 def draw_pellet(x, y):
+    """ Draw the pellets in the maze
+
+    :param x: x position of the pellet
+    :param y: y position of the pellet
+    :return: none
+    """
     global pellet_dim, texture_pellet
     # arcade.draw_circle_filled(x, y, pellet_dim, arcade.color.ORANGE_PEEL)
     arcade.draw_texture_rectangle(x, y, pellet_dim, pellet_dim, texture_pellet, 0)
 
 
 def on_key_press(key, modifiers):
+    """ Check which key is pressed and turn all other off
+
+    :param key: key on the keyboard which is pressed
+    :param modifiers: no modifiers
+    :return: none
+    """
     global up_pressed, down_pressed, left_pressed, right_pressed, lose
     # create a key list
     key_pressed_list = [0] * 4
@@ -897,16 +1013,20 @@ def on_key_press(key, modifiers):
         left_pressed = key_pressed_boolean[2]
         right_pressed = key_pressed_boolean[3]
 
-
-def on_key_release(key, modifiers):
-    pass
-
-
-def on_mouse_press(x, y, button, modifiers):
-    pass
+#
+# def on_key_release(key, modifiers):
+#     pass
+#
+#
+# def on_mouse_press(x, y, button, modifiers):
+#     pass
 
 
 def setup():
+    """ Runs once once the program is starting up to load inital values for the program
+
+    :return: none
+    """
     global pac_grid, row_count, column_count, texture_tile, texture_pellet, texture_ghost, texture_ghost_change
     global pac_grid, row_count, column_count, tile_width, tile_height, pac_x, pac_y, score
     arcade.open_window(WIDTH, HEIGHT, "My Arcade Game")
@@ -917,8 +1037,8 @@ def setup():
     window = arcade.get_window()
     window.on_draw = on_draw
     window.on_key_press = on_key_press
-    window.on_key_release = on_key_release
-    window.on_mouse_press = on_mouse_press
+    # window.on_key_release = on_key_release
+    # window.on_mouse_press = on_mouse_press
 
     # load images in setup
     texture_tile = arcade.load_texture("pacific-blue-high-sheen-merola-tile-mosaic-tile-fyfl1spa-64_1000.jpg")
