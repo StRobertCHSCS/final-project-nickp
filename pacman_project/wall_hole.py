@@ -84,6 +84,7 @@ def on_update(delta_time):
 
     wall_touch_pac = wall_collision(pac_x, pac_y)
     pac_move(wall_touch_pac)
+    pac_x, pac_speed_x = pac_wall_hole(pac_x, pac_y, wall_touch_pac, pac_speed_x)
     pac_object_detection(pac_x, pac_y)
     pac_win_lose(pac_x, pac_y)
 
@@ -279,6 +280,48 @@ def draw_pac(x, y):
         draw_pacman_closed(x, y)
 
 
+def pac_wall_hole(x, y, walls, sp_x):
+    """ If character is at the portal, make him teleport
+
+    :param x: x position of character
+    :param y: y position of character
+    :param walls: list of walls character is currently in contact with
+    :param sp_x: x speed of characer
+    :return: new x position and x speed of character
+    """
+
+    global pac_speed_x, pac_speed_y, ghost_speeds, pac_grid, tile_width
+
+    # check if character is midtile
+    if walls != "null":
+        # calculate current column and row
+        column = int(((x + 20) // tile_width) - 1)
+        row = int(((y + 20) // tile_width) - 1)
+        # teleport pacman if he is at the whole
+        if column == 0 and row == 7:
+            # calculate new x positions
+            x_pos = 1220
+
+            # return the x position and the opposite direction
+            return x_pos, -sp_x
+        else:
+            # midtile but not teleporting
+            return x, sp_x
+
+        if column == 30 and row == 7:
+            # calculate new x positions
+            x_pos = 20
+
+            # return the x position and the opposite direction
+            return x_pos, -sp_x
+        else:
+            # midtile but not teleporting
+            return x, sp_x
+    else:
+        # not mid tile
+        return x, sp_x
+
+
 def wall_collision(x, y):
     """ Check which walls character is currently in contact with
 
@@ -309,20 +352,23 @@ def wall_collision(x, y):
         row_below = pac_row - 1
         column_left = pac_column - 1
         column_right = pac_column + 1
+        # check if he's at the portal
+        if column_left == -1 or column_right == 31:
+            return ["up", "down"]
+        else:
+            wall_touch = []
 
-        wall_touch = []
+            # check if adjacent tiles are walls or not
+            if pac_grid[row_above][pac_column] == 0:
+                wall_touch.append("up")
+            if pac_grid[row_below][pac_column] == 0:
+                wall_touch.append("down")
+            if pac_grid[pac_row][column_left] == 0:
+                wall_touch.append("left")
+            if pac_grid[pac_row][column_right] == 0:
+                wall_touch.append("right")
 
-        # check if adjacent tiles are walls or not
-        if pac_grid[row_above][pac_column] == 0:
-            wall_touch.append("up")
-        if pac_grid[row_below][pac_column] == 0:
-            wall_touch.append("down")
-        if pac_grid[pac_row][column_left] == 0:
-            wall_touch.append("left")
-        if pac_grid[pac_row][column_right] == 0:
-            wall_touch.append("right")
-
-        return wall_touch
+            return wall_touch
 
     # not in mid tile
     else:
@@ -1060,7 +1106,7 @@ def setup():
         pac_grid.append([])
         for column in range(column_count):
             # if on the outside, make tile a wall
-            if row == 0 or column == 0 or row == 14 or column == 30:
+            if (row == 0 or column == 0 or row == 14 or column == 30) and row != 7:
                 pac_grid[row].append(0)
             # draw wall tiles from column to column
             elif (2 <= row <= 5 or row == 7 or 9 <= row <= 12) and column == 2:
@@ -1123,7 +1169,7 @@ def setup():
             elif 6 <= row <= 8 and 14 <= column <= 16:
                 pac_grid[row].append(2)
             # # if not a wall tile or nothing, pellet tile
-            elif (1 <= column <= 29) and (1 <= row <= 13):
+            elif (0 <= column <= 30) and (1 <= row <= 13):
                 pac_grid[row].append(1)
 
     arcade.run()
