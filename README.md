@@ -11,7 +11,8 @@
 * Run away from ghosts
 * Grab super pellet to chase ghosts
 * Make sure to stay stay on super pellets for a short time
-in order to activate it
+in order to activate it (as they are flashing)
+* You have 1 life; 1 attempt at winning and being victorious
 
 ### Scoring
 * Each pellet is 10 points

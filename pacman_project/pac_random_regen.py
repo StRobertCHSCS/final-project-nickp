@@ -1,3 +1,12 @@
+"""
+Name: pacman.py
+Purpose: To play the original pacman arcade game being coded with slight modifications to the original game
+
+Author: Palmar.N
+
+Created: 09/06/2019
+"""
+
 # import libraries
 import arcade
 import random
@@ -271,13 +280,13 @@ def draw_pac(x, y):
 
 
 def wall_collision(x, y):
-    """ Check which walls pacman is currently in contact with
+    """ Check which walls character is currently in contact with
 
-    :param x: x position of pacman
-    :param y: y position of pacman
-    :return: list of walls pacman is in contact with (or null if pacman is mid tile)
+    :param x: x position of character
+    :param y: y position of character
+    :return: list of walls character is in contact with (or null if character is mid tile)
     """
-    global tile_height, tile_width, pac_rad, pac_grid, row_count, column_count, WIDTH, HEIGHT
+    global tile_height, tile_width, pac_grid, row_count, column_count, WIDTH, HEIGHT
     # check if pacman/ghost is in the middle of a tile
     if x <= WIDTH//2:
         check_x = (x + (tile_width//2)) % tile_width
