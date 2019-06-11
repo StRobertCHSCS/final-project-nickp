@@ -1115,7 +1115,7 @@ def setup():
                 pac_grid[row].append(0)
 
             # add 4 super pellets
-            elif (column == 1 or column == 29) and (row == 1 or row == 13):
+            elif (column == 1 or column == 29 or column == 15) and (row == 1 or row == 13 or row == 10):
                 # 3 means super pellet
                 pac_grid[row].append(3)
 

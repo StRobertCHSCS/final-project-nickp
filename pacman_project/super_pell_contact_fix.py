@@ -845,21 +845,22 @@ def pac_object_detection(x, y):
             pac_grid[pac_row][pac_column] = 2
             score += 10
     # check if pacman is on the super pellet (3 or 2 when flashing)
-    if pac_grid[pac_row][pac_column] == 3:
-        # check which super pellet is caught and turn off it's status
-        if pac_row == 1 and pac_column == 1 and super_pellet_capture[0] != True:
-            super_pellet_capture[0] = True
-            pac_grid[1][1] = 2
-        elif pac_row == 13 and pac_column == 1 and super_pellet_capture[2] != True:
-            super_pellet_capture[2] = True
-            pac_grid[13][1] = 2
-        elif pac_row == 13 and pac_column == 29 and super_pellet_capture[3] != True:
-            super_pellet_capture[3] = True
-            pac_grid[13][29] = 2
-        elif pac_row == 1 and pac_column == 29 and super_pellet_capture[1] != True:
-            super_pellet_capture[1] = True
-            pac_grid[1][29] = 2
-
+    # check which super pellet is caught and turn off it's status
+    if pac_row == 1 and pac_column == 1 and super_pellet_capture[0] != True:
+        super_pellet_capture[0] = True
+        pac_grid[1][1] = 2
+        ghost_change_skin = True
+    elif pac_row == 13 and pac_column == 1 and super_pellet_capture[2] != True:
+        super_pellet_capture[2] = True
+        pac_grid[13][1] = 2
+        ghost_change_skin = True
+    elif pac_row == 13 and pac_column == 29 and super_pellet_capture[3] != True:
+        super_pellet_capture[3] = True
+        pac_grid[13][29] = 2
+        ghost_change_skin = True
+    elif pac_row == 1 and pac_column == 29 and super_pellet_capture[1] != True:
+        super_pellet_capture[1] = True
+        pac_grid[1][29] = 2
         ghost_change_skin = True
 
     # check if pacman is in contact with any ghost
