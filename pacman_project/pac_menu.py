@@ -76,6 +76,8 @@ win = False
 # menu/game variables
 menu = True
 reset_all = False
+attempt = 0
+end = False
 
 def on_update(delta_time):
     """ Update any logical this in the code here; continous loop
@@ -86,9 +88,10 @@ def on_update(delta_time):
     global pac_x, pac_y, time_1, pac_speed_x, pac_speed_y, ghost_x1, ghost_y1, ghost_x2, ghost_y2, time_2
     global ghost_change_skin, ghost_x3, ghost_y3, chase_time, time_bar_width, reset_time, reset_all
     global pac_rad, init_arc_angle, final_arc_angle, pac_skin, up_pressed, down_pressed, left_pressed, right_pressed
-    global score, ghost_speeds, ghost_rand_x, ghost_rand_y
+    global score, ghost_speeds, ghost_rand_x, ghost_rand_y, lose, win, attempt, row_count, column_count
+    global pac_grid, super_pellet_capture, menu
 
-    if lose == False and win == False:
+    if lose == False and menu == False:
 
         # reset variable status
         reset_all = False
@@ -131,9 +134,9 @@ def on_update(delta_time):
             if time_2 >= chase_time:
                 ghost_change_skin = False
                 time_2 = 0
-    else:
-        reset_time += delta_time
-        if reset_time <= 3:
+    elif lose == True and menu == False:
+        reset_time -= delta_time
+        if reset_time >= 0:
             if reset_all == False:
                 # pacman variables
                 pac_x = 620
@@ -150,7 +153,7 @@ def on_update(delta_time):
                 right_pressed = False
                 pac_speed_x = 0
                 pac_speed_y = 0
-
+                super_pellet_capture = [False] * 4
                 chase_time = 10
 
                 #  score variables
@@ -165,18 +168,16 @@ def on_update(delta_time):
                 ghost_y3 = 420
                 ghost_speeds = [[0, 0], [0, 0], [0, 0]]
                 ghost_change_skin = False
-                ghost_rand_x = [500, 740]
-                ghost_rand_y = [180, 300, 420]
-
+                # reset the pacman grid and reset variable status
+                set_up_maze()
                 reset_all = True
 
-            draw_count_down(reset_time)
-
+        # 3 seconds has passed
         else:
-            win = False
-            lose = False
-            reset_time = 3
-
+            if win == False:
+                lose = False
+                reset_time = 3
+                attempt += 1
 
 
 def on_draw():
@@ -186,7 +187,7 @@ def on_draw():
     """
     global pac_grid, row_count, column_count, tile_width, tile_height, pac_x, pac_y, score, time_2, menu
     global ghost_x1, ghost_y1, ghost_x2, ghost_y2, ghost_x3, ghost_y3, WIDTH, HEIGHT, ghost_change_skin
-    global lose, win, texture_menu
+    global lose, win, texture_menu, reset_time, end
 
     if menu == True:
         # draw the menu
@@ -226,6 +227,20 @@ def on_draw():
         elif win == True:
             arcade.draw_text("YOU WIN", WIDTH//2 - (7*tile_width), HEIGHT//2 - (2*tile_width), arcade.color.SKY_BLUE, 100)
 
+        # output the reset game countdown
+        if reset_time < 3:
+            write_reset_time(reset_time)
+
+
+def write_reset_time(time):
+    """ write the time to reset the game (player can start) on the screen
+
+    :param time: time left to start
+    :return: none
+    """
+    global WIDTH, HEIGHT
+    output_time = round(time)
+    arcade.draw_text(str(output_time), WIDTH/2-50, HEIGHT/2, arcade.color.UNIVERSITY_OF_TENNESSEE_ORANGE, 100)
 
 def draw_menu(texture):
     """ draw the menu
@@ -1119,33 +1134,14 @@ def on_mouse_press(x, y, button, modifiers):
     if 35 < x < 345 and 340 < y < 440:
         menu = False
 
+def set_up_maze():
+    """ setup the inital column and row positions of objects on the grid
 
-
-def setup():
-    """ Runs once once the program is starting up to load inital values for the program
-
+    :param pac_grid: 2D list on which the game is based
     :return: none
     """
-    global pac_grid, row_count, column_count, texture_tile, texture_pellet, texture_ghost, texture_ghost_change
-    global pac_grid, row_count, column_count, tile_width, tile_height, pac_x, pac_y, score, texture_menu
-    arcade.open_window(WIDTH, HEIGHT, "My Arcade Game")
-    arcade.set_background_color(arcade.color.BLACK)
-    arcade.schedule(on_update, 1/60)
-
-    # Override arcade window methods
-    window = arcade.get_window()
-    window.on_draw = on_draw
-    window.on_key_press = on_key_press
-    # window.on_key_release = on_key_release
-    window.on_mouse_press = on_mouse_press
-
-    # load images in setup
-    texture_tile = arcade.load_texture("pacific-blue-high-sheen-merola-tile-mosaic-tile-fyfl1spa-64_1000.jpg")
-    texture_pellet = arcade.load_texture("Gold_Coin_PNG_Clipart-663.png")
-    texture_ghost_change = arcade.load_texture("Pac-Man-Ghost-PNG-Image.png")
-    texture_ghost = arcade.load_texture("Download-Pac-Man-Ghost-PNG-Transparent-Image.png")
-    texture_menu = arcade.load_texture("menu.jpeg")
-
+    global row_count, column_count, pac_grid
+    pac_grid = []
     # create the pacman grid
     for row in range(row_count):
         # open a list for the first row
@@ -1210,13 +1206,41 @@ def setup():
             elif (column == 1 or column == 29) and (row == 1 or row == 13):
                 # 3 means super pellet
                 pac_grid[row].append(3)
-
             # append nothing
             elif 6 <= row <= 8 and 14 <= column <= 16:
                 pac_grid[row].append(2)
             # # if not a wall tile or nothing, pellet tile
             elif (1 <= column <= 29) and (1 <= row <= 13):
                 pac_grid[row].append(1)
+
+
+def setup():
+    """ Runs once once the program is starting up to load inital values for the program
+
+    :return: none
+    """
+    global pac_grid, row_count, column_count, texture_tile, texture_pellet, texture_ghost, texture_ghost_change
+    global pac_grid, row_count, column_count, tile_width, tile_height, pac_x, pac_y, score, texture_menu
+    arcade.open_window(WIDTH, HEIGHT, "My Arcade Game")
+    arcade.set_background_color(arcade.color.BLACK)
+    arcade.schedule(on_update, 1/60)
+
+    # Override arcade window methods
+    window = arcade.get_window()
+    window.on_draw = on_draw
+    window.on_key_press = on_key_press
+    # window.on_key_release = on_key_release
+    window.on_mouse_press = on_mouse_press
+
+    # load images in setup
+    texture_tile = arcade.load_texture("pacific-blue-high-sheen-merola-tile-mosaic-tile-fyfl1spa-64_1000.jpg")
+    texture_pellet = arcade.load_texture("Gold_Coin_PNG_Clipart-663.png")
+    texture_ghost_change = arcade.load_texture("Pac-Man-Ghost-PNG-Image.png")
+    texture_ghost = arcade.load_texture("Download-Pac-Man-Ghost-PNG-Transparent-Image.png")
+    texture_menu = arcade.load_texture("menu.jpeg")
+
+    # # create the pacman grid
+    set_up_maze()
 
     arcade.run()
 
