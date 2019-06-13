@@ -135,9 +135,12 @@ def on_update(delta_time):
             if time_2 >= chase_time:
                 ghost_change_skin = False
                 time_2 = 0
+    # player killed by ghost and not on menu
     elif lose == True and menu == False:
+        # decrease reset time of 3 seconds
         reset_time -= delta_time
         if reset_time >= 0:
+            # reset varibales once
             if reset_all == False:
                 # pacman variables
                 pac_x = 620
@@ -269,9 +272,11 @@ def draw_menu(texture):
     # background color
     arcade.draw_rectangle_filled(WIDTH/2, HEIGHT/2, WIDTH, HEIGHT, arcade.color.DARK_BLUE)
     # image
-    arcade.draw_texture_rectangle(WIDTH/2, HEIGHT/2, WIDTH-800, HEIGHT-200, texture, 0)
+    arcade.draw_texture_rectangle(WIDTH/2, HEIGHT/2, WIDTH-200, HEIGHT+200, texture, 0)
     # play button
-    arcade.draw_text("PLAY", WIDTH/2-600, HEIGHT/2, arcade.color.UNIVERSITY_OF_TENNESSEE_ORANGE, 100)
+    arcade.draw_text("PLAY", WIDTH/2-500, HEIGHT/2, arcade.color.UNIVERSITY_OF_TENNESSEE_ORANGE, 70)
+    # give credit to meee lol
+    arcade.draw_text("Nicolas P", 900, HEIGHT/2, arcade.color.UNIVERSITY_OF_TENNESSEE_ORANGE, 60)
 
 
 def change_ghost(x, y):
@@ -702,7 +707,6 @@ def ghost_chase_rand3(walls):
                         ghost_speeds[2][0] = ghost3_poss_speeds[3]
 
     # move the ghost
-    # print(ghost_speeds[2])
     ghost_x3 += ghost_speeds[2][0]
     ghost_y3 += ghost_speeds[2][1]
 
@@ -738,7 +742,6 @@ def ghost_chase1(walls):
         x_distance = ghost_x1 - pac_x
         y_distance = ghost_y1 - pac_y
 
-        # print(x_distance, y_distance)
         # check if ghost in currently in motion or not
         if ghost_speeds[0][0] == 0 and ghost_speeds[0][1] == 0:
             # check if pacman is closer in x direction and try to send ghost that way
@@ -828,7 +831,6 @@ def ghost_chase1(walls):
                         ghost_speeds[0][0] = ghost1_poss_speeds[3]
 
     # move the ghost
-    # print(ghost_speeds[2])
     ghost_x1 += ghost_speeds[0][0]
     ghost_y1 += ghost_speeds[0][1]
 
@@ -905,7 +907,7 @@ def flash_super_pellet():
     # make pellets flash if not caught
     for i in range(len(super_pellet_capture)):
         if super_pellet_capture[i] == False:
-            # check each pellet
+            # check each pellet; did not work with a loop so done manually
             if i == 0:
                 if pac_grid[1][1] == 3:
                     pac_grid[1][1] = 2
@@ -1132,11 +1134,7 @@ def on_key_press(key, modifiers):
         left_pressed = key_pressed_boolean[2]
         right_pressed = key_pressed_boolean[3]
 
-#
-# def on_key_release(key, modifiers):
-#     pass
-#
-#
+
 def on_mouse_press(x, y, button, modifiers):
     """ check where the mouse is being pressed
 
@@ -1147,7 +1145,7 @@ def on_mouse_press(x, y, button, modifiers):
     :return: none
     """
     global menu
-    # check if on play
+    # check if on "play"
     if 35 < x < 345 and 340 < y < 440:
         menu = False
 
@@ -1158,12 +1156,14 @@ def set_up_maze():
     :return: none
     """
     global row_count, column_count, pac_grid
+    # reset the grid to redraw it
     pac_grid = []
     # create the pacman grid
     for row in range(row_count):
         # open a list for the first row
         pac_grid.append([])
         for column in range(column_count):
+            # draw out the walls manually according to screen mockup
             # if on the outside, make tile a wall
             if row == 0 or column == 0 or row == 14 or column == 30:
                 pac_grid[row].append(0)
@@ -1246,7 +1246,6 @@ def setup():
     window = arcade.get_window()
     window.on_draw = on_draw
     window.on_key_press = on_key_press
-    # window.on_key_release = on_key_release
     window.on_mouse_press = on_mouse_press
 
     # load images in setup
@@ -1256,7 +1255,7 @@ def setup():
     texture_ghost = arcade.load_texture("Download-Pac-Man-Ghost-PNG-Transparent-Image.png")
     texture_menu = arcade.load_texture("menu.jpeg")
 
-    # # create the pacman grid
+    # create the pacman grid
     set_up_maze()
 
     arcade.run()
