@@ -276,7 +276,7 @@ def draw_menu(texture):
     # play button
     arcade.draw_text("PLAY", WIDTH/2-500, HEIGHT/2, arcade.color.UNIVERSITY_OF_TENNESSEE_ORANGE, 70)
     # give credit to meee lol
-    arcade.draw_text("Nicolas P", 900, HEIGHT/2, arcade.color.UNIVERSITY_OF_TENNESSEE_ORANGE, 60)
+    arcade.draw_text("Nicolas P", 850, HEIGHT/2, arcade.color.UNIVERSITY_OF_TENNESSEE_ORANGE, 60)
 
 
 def change_ghost(x, y):
