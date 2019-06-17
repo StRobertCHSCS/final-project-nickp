@@ -7,7 +7,7 @@
 
 
 ### Gameplay Instructions
-* File name is pacman.py
+* File name is pacman.py (instead of master.py)
 * Use arrow keys to move pacman
 * Can't move through walls
 * Collect as many pellets as possible
