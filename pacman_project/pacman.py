@@ -77,7 +77,6 @@ win = False
 menu = True
 reset_all = False
 lives = 3
-end = False
 
 
 def on_update(delta_time):
@@ -193,7 +192,7 @@ def on_draw():
     """
     global pac_grid, row_count, column_count, tile_width, tile_height, pac_x, pac_y, score, time_2, menu
     global ghost_x1, ghost_y1, ghost_x2, ghost_y2, ghost_x3, ghost_y3, WIDTH, HEIGHT, ghost_change_skin
-    global lose, win, texture_menu, reset_time, end, lives
+    global lose, win, texture_menu, reset_time, lives
 
     if menu == True:
         # draw the menu
