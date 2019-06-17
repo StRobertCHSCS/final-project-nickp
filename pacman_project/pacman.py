@@ -1148,6 +1148,7 @@ def on_mouse_press(x, y, button, modifiers):
     if 35 < x < 345 and 340 < y < 440:
         menu = False
 
+
 def set_up_maze():
     """ setup the inital column and row positions of objects on the grid
 
